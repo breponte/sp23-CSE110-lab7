@@ -44,21 +44,20 @@ self.addEventListener('fetch', function (event) {
   //            above (CACHE_NAME)
   // Check if this is a navigation request
     event.respondWith(caches.open(CACHE_NAME).then(async (cache) => {
-
-    console.log(123123123121241251253);
     // B8. TODO - If the request is in the cache, return with the cached version.
     //            Otherwise fetch the resource, add it to the cache, and return
     //            network response.
-    const precached = await cache.match(event.request);
+    /* check if fetched item is in cache */
+    const isCached = await cache.match(event.request);
 
-    if (precached) {
-      return precached;
+    /* return cached item if in cache */
+    if (isCached) {
+      return isCached;
     }
 
-    console.log(123123123123);
-
-    const resp = await fetch(event.request);
-    await cache.put(event.request, resp);
-    return resp;
+    /* else, fetch through network */
+    const fetched = await fetch(event.request);
+    await cache.put(event.request, fetched);
+    return fetched;
   }));
 });
