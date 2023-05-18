@@ -48,22 +48,23 @@ function initializeServiceWorker() {
   if ('serviceWorker' in navigator) {
       // B2. TODO - Listen for the 'load' event on the window object.
       // Steps B3-B6 will be *inside* the event listener's function created in B2
-      window.addEventListener('load', async function () {
+      window.addEventListener('load', async () => {
         try {
           // B3. TODO - Register './sw.js' as a service worker (The MDN article
           //            "Using Service Workers" will help you here)
           const registration =
-            await this.navigator.serviceWorker.register('./sw.js');
+            await navigator.serviceWorker.register('./sw.js', {
+              scope: "./",
+            });
           // B4. TODO - Once the service worker has been successfully registered, console
           //            log that it was successful.
-          if (registration.waiting) {
+          if (registration.active) {
             console.log("Service worker registered");
-          }
+          };
         // B5. TODO - In the event that the service worker registration fails, console
         //            log that it has failed.
         } catch (err) {
-          console.log("Service worker registration failed")
-          console.error(err);
+          console.error(`Service worker registration failed with ${err}`);
         }
         // STEPS B6 ONWARDS WILL BE IN /sw.js
       });
@@ -104,7 +105,7 @@ async function getRecipes() {
     /**************************/
     // A4. TODO - Loop through each recipe in the RECIPE_URLS array constant
     //            declared above
-    for (const url of RECIPE_URLS) {
+    for (let i = 0; i < RECIPE_URLS.length; i++) {
       // A5. TODO - Since we are going to be dealing with asynchronous code, create
       //            a try / catch block. A6-A9 will be in the try portion, A10-A11
       //            will be in the catch portion.
@@ -113,27 +114,27 @@ async function getRecipes() {
         //            article on fetch(). NOTE: Fetches are ASYNCHRONOUS, meaning that
         //            you must either use "await fetch(...)" or "fetch.then(...)". This
         //            function is using the async keyword so we recommend "await"
-        let fetched = await fetch(url);
+        let fetched = await fetch(RECIPE_URLS[i]);
         // A7. TODO - For each fetch response, retrieve the JSON from it using .json().
         //            NOTE: .json() is ALSO asynchronous, so you will need to use
         //            "await" again
-        fetched = await fetched.json();
+        let fetched_JSON = await fetched.json();
         // A8. TODO - Add the new recipe to the recipes array
-        recipes.push(fetched);
+        recipes.push(fetched_JSON);
         // A9. TODO - Check to see if you have finished retrieving all of the recipes,
         //            if you have, then save the recipes to storage using the function
         //            we have provided. Then, pass the recipes array to the Promise's
         //            resolve() method.
         /* check if current is last recipe url */
-        if (url === RECIPE_URLS[RECIPE_URLS.length-1]) {
+        if (recipes.length === RECIPE_URLS.length) {
           saveRecipesToStorage(recipes);
           resolve(recipes);
         }
-      } catch (err) {
+      } catch (error) {
         // A10. TODO - Log any errors from catch using console.error
-        console.error(err);
+        console.error(error);
         // A11. TODO - Pass any errors to the Promise's reject() function
-        reject(err);
+        reject(error);
       }
     }
   });

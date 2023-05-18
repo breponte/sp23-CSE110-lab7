@@ -2,6 +2,14 @@
 //         so do not move it next to the other scripts
 
 const CACHE_NAME = 'lab-7-starter';
+const RECIPE_URLS = [
+  'https://introweb.tech/assets/json/1_50-thanksgiving-side-dishes.json',
+  'https://introweb.tech/assets/json/2_roasting-turkey-breast-with-stuffing.json',
+  'https://introweb.tech/assets/json/3_moms-cornbread-stuffing.json',
+  'https://introweb.tech/assets/json/4_50-indulgent-thanksgiving-side-dishes-for-any-holiday-gathering.json',
+  'https://introweb.tech/assets/json/5_healthy-thanksgiving-recipe-crockpot-turkey-breast.json',
+  'https://introweb.tech/assets/json/6_one-pot-thanksgiving-dinner.json',
+];
 
 // Installs the service worker. Feed it some initial URLs to cache
 self.addEventListener('install', function (event) {
@@ -9,14 +17,6 @@ self.addEventListener('install', function (event) {
     caches.open(CACHE_NAME).then(function (cache) {
       // B6. TODO - Add all of the URLs from RECIPE_URLs here so that they are
       //            added to the cache when the ServiceWorker is installed
-      const RECIPE_URLS = [
-        'https://introweb.tech/assets/json/1_50-thanksgiving-side-dishes.json',
-        'https://introweb.tech/assets/json/2_roasting-turkey-breast-with-stuffing.json',
-        'https://introweb.tech/assets/json/3_moms-cornbread-stuffing.json',
-        'https://introweb.tech/assets/json/4_50-indulgent-thanksgiving-side-dishes-for-any-holiday-gathering.json',
-        'https://introweb.tech/assets/json/5_healthy-thanksgiving-recipe-crockpot-turkey-breast.json',
-        'https://introweb.tech/assets/json/6_one-pot-thanksgiving-dinner.json',
-      ];
       return cache.addAll(RECIPE_URLS);
     })
   );
@@ -28,7 +28,7 @@ self.addEventListener('activate', function (event) {
 });
 
 // Intercept fetch requests and cache them
-self.addEventListener('fetch', async function (event) {
+self.addEventListener('fetch', function (event) {
   // We added some known URLs to the cache above, but tracking down every
   // subsequent network request URL and adding it manually would be very taxing.
   // We will be adding all of the resources not specified in the intiial cache
@@ -43,21 +43,22 @@ self.addEventListener('fetch', async function (event) {
   // B7. TODO - Respond to the event by opening the cache using the name we gave
   //            above (CACHE_NAME)
   // Check if this is a navigation request
-  event.respondWith(caches.open(CACHE_NAME).then((cache) => {
+    event.respondWith(caches.open(CACHE_NAME).then(async (cache) => {
+
+    console.log(123123123121241251253);
     // B8. TODO - If the request is in the cache, return with the cached version.
     //            Otherwise fetch the resource, add it to the cache, and return
     //            network response.
-    if (event.request.mode === 'navigate') {
-      return event.respondWith(cache.open(CACHE_NAME).then((cache) => {
-        return cache.match(event.request).then((cachedResponse) => {
-          return cachedResponse || fetch(event.request).then((fetchedResponse) => {
-            cache.put(event.request, fetchedResponse.clone());
-            return fetchedResponse;
-          });
-        });
-      }));
-    } else {
-      return;
+    const precached = await cache.match(event.request);
+
+    if (precached) {
+      return precached;
     }
+
+    console.log(123123123123);
+
+    const resp = await fetch(event.request);
+    await cache.put(event.request, resp);
+    return resp;
   }));
 });
